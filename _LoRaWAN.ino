@@ -113,9 +113,9 @@ void do_send(osjob_t* j){
     } else {
         // Prepare upstream data transmission at the next possible time.
         generatePayload();
-        LMIC_setTxData2(1, payload, sizeof(payload)-1, 0);
+        LMIC_setTxData2(1, payload, sizeof(payload), 0);
         Serial.print(F("Packet queued, sending "));
-        Serial.print(sizeof(payload)-1);
+        Serial.print(sizeof(payload));
         Serial.print(F(" bytes: "));
         for(int i = 0; i < sizeof(payload); i++)        {
           if (payload[i] < 10) {Serial.print("0"); }

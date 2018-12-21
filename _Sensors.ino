@@ -11,7 +11,7 @@ void init_sensors() {
 
 void read_sensors() {
   read_bme280();
-  read_bme680();  
+  read_bme680();
   read_sds011();
 }
 
@@ -79,39 +79,38 @@ void read_bme680() {
   }
 }
 
-
-
 void init_sds011() {
   Serial.print(F("INIT sds011: "));
-  sds011.begin();
-  delay(1500); // Wait shortly to make sure SDS is responsive
-  String undef = String("Mode: undefined");
-  Serial.println(undef);
-  if (undef == sds011.setContinuousWorkingPeriod().toString()) {
-    Serial.println(F("not found"));
-  } else {
-    Serial.println(sds011.queryFirmwareVersion().toString()); // prints firmware version
-    Serial.println(sds011.setActiveReportingMode().toString()); // ensures sensor is in 'active' reporting mode
-    Serial.println(sds011.setContinuousWorkingPeriod().toString()); // ensures sensor has continuous working period - default but not recommended
-    sds011_ok = 1;
-  }
+  sds011.setup(&Serial2);
+  sds011.onData([](float pm25Value, float pm10Value) {
+    if (pm_array_counter < pm_array_size) {
+      sds011_pm25[pm_array_counter] = pm25Value;
+      sds011_pm10[pm_array_counter] = pm10Value;
+      pm_array_counter++;
+    } else {
+      Serial.println("Array full!");    
+      pm_array_counter = 0;
+    }
+
+    Serial.print("PM2.5: ");
+    Serial.print(pm25Value);
+    Serial.print(" PM10: ");
+    Serial.println(pm10Value);
+  });
+  /*
+    sds011.onResponse([](){
+      // Serial.println("Response");
+      // command has been executed
+    });
+  */
+  sds011.onError([](int8_t error) {
+    Serial.println("EROR");
+    // error happened
+    // -1: CRC error
+  });
+  sds011.setWorkingPeriod(5);
 }
 
 void read_sds011() {
-  if ((sds011_ok == 1) && (millis() > (sds011_lastRead + SDS011_READ_DELAY))) {
-    sds011_lastRead = millis();
-    PmResult pm = sds011.readPm();
-    if (pm.isOk()) {
-      float pm25 = pm.pm25;
-      float pm10 = pm.pm10;
-      Serial.print("PM2.5 = ");
-      Serial.print(pm25);
-      Serial.print(", PM10 = ");
-      Serial.println(pm10);
-      // Do something for the data here
-      sds011_lastSend = millis();
-      sds011_lastPM25 = pm25;
-      sds011_lastPM10 = pm10;
-    }
-  }
+  sds011.loop();
 }

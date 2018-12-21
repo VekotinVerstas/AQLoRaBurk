@@ -24,7 +24,7 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_BME680.h>
-#include "src/SdsDustSensor.h"
+#include "SDS011.h"
 
 // I2C settings
 // TODO: Check correct ESP32 pins
@@ -32,8 +32,8 @@
 #define SCL 1
 
 #define BME680_HEATING_TIME 150 // milliseconds
-#define SDS011_RXPIN 3
-#define SDS011_TXPIN 4
+#define SDS011_RXPIN 39
+#define SDS011_TXPIN 36
 
 // BME280 sensor
 Adafruit_BME280 bme280;
@@ -54,12 +54,12 @@ float bme680_lastHumi = -999;
 float bme680_lastPres = -999;
 float bme680_lastGas = -999;
 
-SdsDustSensor sds011(SDS011_RXPIN, SDS011_TXPIN);
+SDS011 sds011;
 uint8_t sds011_ok = 0;
-uint32_t sds011_lastRead = 0;
-uint32_t sds011_lastSend = 0;
-float sds011_lastPM25 = -1.0;
-float sds011_lastPM10 = -1.0;
+#define pm_array_size 120
+uint32_t pm_array_counter = 0;
+float sds011_pm25[pm_array_size];
+float sds011_pm10[pm_array_size];
 
 static osjob_t sendjob;
 
@@ -68,6 +68,8 @@ void setup() {
     Serial.begin(115200);
     delay(100);     // per sample code on RF_95 test
     Serial.println(F("Starting"));
+    // SDS011 serial
+    Serial2.begin(9600, SERIAL_8N1, SDS011_RXPIN, SDS011_TXPIN);
     init_sensors();
     lmic_init();
     // Start job

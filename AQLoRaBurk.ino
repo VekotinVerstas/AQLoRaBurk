@@ -124,6 +124,10 @@ void generatePayload() {
   uint16_t tmp;
   uint8_t i = 0;
 
+  // 2 first bytes defines protocol
+  payload[i++] = 0x2A;
+  payload[i++] = 0x2A;
+
   tmp = (uint16_t)(min25 * 10);
   payload[i++] = tmp >> 8;
   payload[i++] = tmp & 0x00FF;
@@ -148,8 +152,6 @@ void generatePayload() {
   payload[i++] = tmp >> 8;
   payload[i++] = tmp & 0x00FF;
 
-  payload[i++] = 0;
-  payload[i++] = 0;
   payload[i++] = 0;
   payload[i++] = 0;
 

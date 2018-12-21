@@ -13,8 +13,6 @@ void os_getDevEui(u1_t* buf) {
 }
 void os_getDevKey (u1_t* buf) { }
 
-static uint8_t mydata[] = "Hello, world!";
-
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
 
@@ -114,8 +112,17 @@ void do_send(osjob_t* j){
         Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
         // Prepare upstream data transmission at the next possible time.
-        LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
-        Serial.println(F("Packet queued"));
+        generatePayload();
+        LMIC_setTxData2(1, payload, sizeof(payload)-1, 0);
+        Serial.print(F("Packet queued, sending "));
+        Serial.print(sizeof(payload)-1);
+        Serial.print(F(" bytes: "));
+        for(int i = 0; i < sizeof(payload); i++)        {
+          if (payload[i] < 10) {Serial.print("0"); }
+          Serial.print(payload[i], HEX); 
+          Serial.print(" "); 
+        }
+        Serial.println();  
     }
     // Next TX is scheduled after TX_COMPLETE event.
 }

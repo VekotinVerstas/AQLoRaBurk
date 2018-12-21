@@ -88,7 +88,7 @@ void init_sds011() {
       sds011_pm10[pm_array_counter] = pm10Value;
       pm_array_counter++;
     } else {
-      Serial.println("Array full!");    
+      Serial.println("Array full!");
       pm_array_counter = 0;
     }
 

@@ -96,6 +96,12 @@ void loop() {
   os_runloop_once();
 }
 
+uint32_t addToPayload(uint8_t pl[], uint16_t val, uint32_t i) {
+  pl[i++] = val >> 8;
+  pl[i++] = val & 0x00FF;
+  return i;
+}
+
 /**
    Generate payload which is an uint8_t array full of uint16_t values meaning
    bytes 0 and 1 contain the first uint16_t value and so on.
@@ -131,34 +137,14 @@ void generatePayload() {
   // 2 first bytes defines protocol
   payload[i++] = 0x2A;
   payload[i++] = 0x2A;
-
-  tmp = (uint16_t)(min25 * 10);
-  payload[i++] = tmp >> 8;
-  payload[i++] = tmp & 0x00FF;
-
-  tmp = (uint16_t)(max25 * 10);
-  payload[i++] = tmp >> 8;
-  payload[i++] = tmp & 0x00FF;
-
-  tmp = (uint16_t)(avg25 * 10);
-  payload[i++] = tmp >> 8;
-  payload[i++] = tmp & 0x00FF;
-
-  tmp = (uint16_t)(min10 * 10);
-  payload[i++] = tmp >> 8;
-  payload[i++] = tmp & 0x00FF;
-
-  tmp = (uint16_t)(max10 * 10);
-  payload[i++] = tmp >> 8;
-  payload[i++] = tmp & 0x00FF;
-
-  tmp = (uint16_t)(avg10 * 10);
-  payload[i++] = tmp >> 8;
-  payload[i++] = tmp & 0x00FF;
-
+  i = addToPayload(payload, (uint16_t)(min25 * 10), i);
+  i = addToPayload(payload, (uint16_t)(max25 * 10), i);
+  i = addToPayload(payload, (uint16_t)(avg25 * 10), i);
+  i = addToPayload(payload, (uint16_t)(min10 * 10), i);
+  i = addToPayload(payload, (uint16_t)(max10 * 10), i);
+  i = addToPayload(payload, (uint16_t)(avg10 * 10), i);
   payload[i++] = 0;
   payload[i++] = 0;
 
   pm_array_counter = 0;
-
 }

@@ -25,6 +25,9 @@
 #include <Adafruit_BME280.h>
 #include <Adafruit_BME680.h>
 #include "SDS011.h"
+#include "QuickStats.h"
+
+QuickStats stats;
 
 // LoRa payload
 #define payloadSize 16
@@ -98,27 +101,28 @@ void loop() {
    bytes 0 and 1 contain the first uint16_t value and so on.
 */
 void generatePayload() {
-  float min25 = 65535;
+  float min25 = 0;
   float max25 = 0;
   float avg25 = 0;
 
-  float min10 = 65535;
+  float min10 = 0;
   float max10 = 0;
   float avg10 = 0;
 
-  for (int i = 0; i < pm_array_counter; i++) {
-    min25 = min(min25, sds011_pm25[i]);
-    max25 = max(max25, sds011_pm25[i]);
-    avg25 = avg25 + sds011_pm25[i];
-    min10 = min(min10, sds011_pm10[i]);
-    max10 = max(max10, sds011_pm10[i]);
-    avg10 = avg10 + sds011_pm10[i];
+  // More examples for statistics
+  // https://github.com/dndubins/QuickStats/blob/master/examples/statistics/statistics.ino
+  if (pm_array_counter > 0) {
+    min25 = stats.minimum(sds011_pm25, pm_array_counter);
+    max25 = stats.maximum(sds011_pm25, pm_array_counter);
+    avg25 = stats.average(sds011_pm25, pm_array_counter);
+    min10 = stats.minimum(sds011_pm10, pm_array_counter);
+    max10 = stats.maximum(sds011_pm10, pm_array_counter);
+    avg10 = stats.average(sds011_pm10, pm_array_counter);
   }
-
   char buffer [100];
   int cx;
   cx = snprintf ( buffer, 100, "Values to send: min2.5 %.1f max2.5 %.1f avg2.5 %.1f min10 %.1f max10 %.1f avg10 %.1f",
-                  min25, max25, avg25 / pm_array_counter, min10, max10, avg10 / pm_array_counter );
+                  min25, max25, avg25, min10, max10, avg10 );
 
   Serial.println(buffer);
   uint16_t tmp;
@@ -136,7 +140,7 @@ void generatePayload() {
   payload[i++] = tmp >> 8;
   payload[i++] = tmp & 0x00FF;
 
-  tmp = (uint16_t)(avg25 * 10 / pm_array_counter);
+  tmp = (uint16_t)(avg25 * 10);
   payload[i++] = tmp >> 8;
   payload[i++] = tmp & 0x00FF;
 
@@ -148,7 +152,7 @@ void generatePayload() {
   payload[i++] = tmp >> 8;
   payload[i++] = tmp & 0x00FF;
 
-  tmp = (uint16_t)(avg10 * 10 / pm_array_counter);
+  tmp = (uint16_t)(avg10 * 10);
   payload[i++] = tmp >> 8;
   payload[i++] = tmp & 0x00FF;
 

@@ -30,7 +30,7 @@
 QuickStats stats;
 
 // LoRa payload
-#define payloadSize 16
+#define payloadSize 18
 static uint8_t payload[payloadSize];
 
 // I2C settings
@@ -81,6 +81,10 @@ void setup() {
   lmic_init();
   // Start job
   do_send(&sendjob);
+  // Initialise payload
+  for (uint8_t i=0; i < payloadSize; i++) {
+    payload[i] = 0;
+  }
 }
 
 void loop() {
@@ -110,10 +114,12 @@ void generatePayload() {
   float min25 = 0;
   float max25 = 0;
   float avg25 = 0;
+  float med25 = 0;
 
   float min10 = 0;
   float max10 = 0;
   float avg10 = 0;
+  float med10 = 0;
 
   // More examples for statistics
   // https://github.com/dndubins/QuickStats/blob/master/examples/statistics/statistics.ino
@@ -121,14 +127,16 @@ void generatePayload() {
     min25 = stats.minimum(sds011_pm25, pm_array_counter);
     max25 = stats.maximum(sds011_pm25, pm_array_counter);
     avg25 = stats.average(sds011_pm25, pm_array_counter);
+    med25 = stats.median(sds011_pm25, pm_array_counter);
     min10 = stats.minimum(sds011_pm10, pm_array_counter);
     max10 = stats.maximum(sds011_pm10, pm_array_counter);
     avg10 = stats.average(sds011_pm10, pm_array_counter);
+    med10 = stats.median(sds011_pm10, pm_array_counter);
   }
   char buffer [100];
   int cx;
-  cx = snprintf ( buffer, 100, "Values to send: min2.5 %.1f max2.5 %.1f avg2.5 %.1f min10 %.1f max10 %.1f avg10 %.1f",
-                  min25, max25, avg25, min10, max10, avg10 );
+  cx = snprintf ( buffer, 100, "Values to send: min2.5 %.1f max2.5 %.1f avg2.5 %.1f med2.5 %.1f min10 %.1f max10 %.1f avg10 %.1f med10 %.1f",
+                  min25, max25, avg25, med25, min10, max10, avg10, med10 );
 
   Serial.println(buffer);
   uint16_t tmp;
@@ -140,11 +148,11 @@ void generatePayload() {
   i = addToPayload(payload, (uint16_t)(min25 * 10), i);
   i = addToPayload(payload, (uint16_t)(max25 * 10), i);
   i = addToPayload(payload, (uint16_t)(avg25 * 10), i);
+  i = addToPayload(payload, (uint16_t)(med25 * 10), i);
   i = addToPayload(payload, (uint16_t)(min10 * 10), i);
   i = addToPayload(payload, (uint16_t)(max10 * 10), i);
   i = addToPayload(payload, (uint16_t)(avg10 * 10), i);
-  payload[i++] = 0;
-  payload[i++] = 0;
+  i = addToPayload(payload, (uint16_t)(med10 * 10), i);
 
   pm_array_counter = 0;
 }

@@ -30,13 +30,12 @@
 QuickStats stats;
 
 // LoRa payload
-#define payloadSize 18
+#define payloadSize 26
 static uint8_t payload[payloadSize];
 
 // I2C settings
-// TODO: Check correct ESP32 pins
-#define SDA 2
-#define SCL 1
+#define SDA 21
+#define SCL 22
 
 #define BME680_HEATING_TIME 150 // milliseconds
 #define SDS011_RXPIN 39
@@ -121,6 +120,12 @@ void generatePayload() {
   float avg10 = 0;
   float med10 = 0;
 
+  float temp = 0;
+  float humi = 0;
+  float pres = 0;
+  float gas = 0;
+
+  uint8_t protocol = 0x2A;
   // More examples for statistics
   // https://github.com/dndubins/QuickStats/blob/master/examples/statistics/statistics.ino
   if (pm_array_counter > 0) {
@@ -133,18 +138,33 @@ void generatePayload() {
     avg10 = stats.average(sds011_pm10, pm_array_counter);
     med10 = stats.median(sds011_pm10, pm_array_counter);
   }
-  char buffer [100];
+  // Add BME sensor values, if they are read at least once
+  if (bme280_ok && (bme280_lastTemp > -999)) {
+    protocol = 0x2A;
+    temp = bme280_lastTemp + 100; // add 100 to make value always positive
+    humi = bme280_lastHumi;
+    pres = bme280_lastPres;
+    gas = 0;
+  } else if (bme680_ok && (bme680_lastTemp > -999)) {
+    protocol = 0x2B;
+    temp = bme680_lastTemp + 100; // add 100 to make value always positive
+    humi = bme680_lastHumi;
+    pres = bme680_lastPres;
+    gas = bme680_lastGas;
+  }
+  char buffer [200];
   int cx;
-  cx = snprintf ( buffer, 100, "Values to send: min2.5 %.1f max2.5 %.1f avg2.5 %.1f med2.5 %.1f min10 %.1f max10 %.1f avg10 %.1f med10 %.1f",
-                  min25, max25, avg25, med25, min10, max10, avg10, med10 );
+  cx = snprintf ( buffer, 200, "Values to send: min2.5 %.1f max2.5 %.1f avg2.5 %.1f med2.5 %.1f min10 %.1f max10 %.1f avg10 %.1f med10 %.1f temp %.1f humi %.1f pres %.1f gas %.1f",
+                  min25, max25, avg25, med25, min10, max10, avg10, med10, temp, humi, pres, gas );
 
   Serial.println(buffer);
+     
   uint16_t tmp;
   uint8_t i = 0;
 
   // 2 first bytes defines protocol
   payload[i++] = 0x2A;
-  payload[i++] = 0x2A;
+  payload[i++] = protocol;  // 2A=BME280, 2B=BME680
   i = addToPayload(payload, (uint16_t)(min25 * 10), i);
   i = addToPayload(payload, (uint16_t)(max25 * 10), i);
   i = addToPayload(payload, (uint16_t)(avg25 * 10), i);
@@ -153,6 +173,10 @@ void generatePayload() {
   i = addToPayload(payload, (uint16_t)(max10 * 10), i);
   i = addToPayload(payload, (uint16_t)(avg10 * 10), i);
   i = addToPayload(payload, (uint16_t)(med10 * 10), i);
+  i = addToPayload(payload, (uint16_t)(temp * 10), i);
+  i = addToPayload(payload, (uint16_t)(humi * 10), i);
+  i = addToPayload(payload, (uint16_t)(pres * 10), i);
+  i = addToPayload(payload, (uint16_t)(gas * 10), i);
 
   pm_array_counter = 0;
 }

@@ -18,12 +18,14 @@
 
 #include <lmic.h>
 #include <hal/hal.h>
+#include <Wire.h>
 #include <SPI.h>
 #include "settings.h"
 // Sensor support libraries
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 #include <Adafruit_BME680.h>
+#include <Adafruit_SSD1306.h>
 #include "SDS011.h"
 #include "QuickStats.h"
 
@@ -67,6 +69,15 @@ uint32_t pm_array_counter = 0;
 float sds011_pm25[pm_array_size];
 float sds011_pm10[pm_array_size];
 
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 64 // OLED display height, in pixels
+
+// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
+#define OLED_RESET     4 // Reset pin
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+unsigned long lastDisplay;
+unsigned long maxDisplayTime = 15 * 60 * 1000; // how many milli seconds display will stay powered on
+
 static osjob_t sendjob;
 
 void setup() {
@@ -77,11 +88,16 @@ void setup() {
   // SDS011 serial
   Serial2.begin(9600, SERIAL_8N1, SDS011_RXPIN, SDS011_TXPIN);
   init_sensors();
+  displayInit();
+  uint16_t t = random(1000, 5000);
+  Serial.println(t);
+  delay(t);
+  lastDisplay = millis();
   lmic_init();
   // Start job
   do_send(&sendjob);
   // Initialise payload
-  for (uint8_t i=0; i < payloadSize; i++) {
+  for (uint8_t i = 0; i < payloadSize; i++) {
     payload[i] = 0;
   }
 }
@@ -97,7 +113,109 @@ void loop() {
   }
   read_sensors();
   os_runloop_once();
+  if (now > lastDisplay + 5000) {
+    displaySensorvalues();
+    lastDisplay = now;
+  }
 }
+
+void displayInit() {
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;); // Don't proceed, loop forever
+  }
+  Serial.println(F("SSD1306 allocated"));
+  display.clearDisplay();
+  display.setTextSize(2);             // Draw 2X-scale text
+  display.setCursor(0, 0);
+  display.setTextColor(BLACK, WHITE); // Draw 'inverse' text
+  display.println(F("AQ Burk"));
+
+  display.setTextSize(1);             // Normal 1:1 pixel scale
+  display.setTextColor(WHITE);        // Draw white text
+  display.println(F("Version 0.1"));
+  display.println(F("Dev "));
+  display.print(F("0x")); display.println(DEVADDR, HEX);
+  if ( bme280_ok || bme680_ok || sds011_ok) {
+    if (bme280_ok) {
+      display.println(F("BME280 OK"));
+    }
+    if (bme680_ok) {
+      display.println(F("BME680 OK"));
+    }
+    if (sds011_ok) {
+      display.println(F("SDS011 OK"));
+    }
+  } else {
+    display.println(F("NO SENSORS FOUND"));
+  }
+  display.display();
+  delay(1000);
+}
+
+void displaySensorvalues() {
+  // maxDisplayTime = 1000*20;  // 20 sec for debugging
+  if (millis() > (maxDisplayTime)) {
+    display.ssd1306_command(SSD1306_DISPLAYOFF);
+    return;
+  }
+  if (millis() > maxDisplayTime - 10 * 1000) {
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setCursor(0, 0);
+    display.setTextColor(BLACK, WHITE);
+    display.println(F("Shutting"));
+    display.println(F("display"));
+    display.println(F("down..."));
+    display.display();
+    return;
+  }
+  Serial.println(F("Display values"));
+  float temp = 0;
+  float humi = 0;
+  float pres = 0;
+  float gas = 0;
+
+  uint8_t protocol = 0x2A;
+  // Add BME sensor values, if they are read at least once
+  if (bme280_ok && (bme280_lastTemp > -999)) {
+    protocol = 0x2A;
+    temp = bme280_lastTemp;
+    humi = bme280_lastHumi;
+    pres = bme280_lastPres;
+    gas = 0;
+  } else if (bme680_ok && (bme680_lastTemp > -999)) {
+    protocol = 0x2B;
+    temp = bme680_lastTemp;
+    humi = bme680_lastHumi;
+    pres = bme680_lastPres;
+    gas = bme680_lastGas;
+  }
+  uint8_t bufsize = 30;
+  char buf1 [bufsize];
+  int cx;
+  display.setCursor(0, 0);
+  display.clearDisplay();
+  display.setTextSize(1);             // Normal 1:1 pixel scale
+  display.setTextColor(WHITE);        // Draw white text
+
+  cx = snprintf ( buf1, bufsize, "T %.1f'C H %.1f%%", temp, humi);
+  display.println(buf1);
+
+  cx = snprintf ( buf1, bufsize, "P %.1fhPa G %.1fohm", temp, humi, pres, gas );
+  display.println(buf1);
+
+  cx = snprintf ( buf1, bufsize, "PM2.5/10 %.1f %.1f", sds011_pm25[pm_array_counter], sds011_pm10[pm_array_counter] );
+  display.println(buf1);
+
+  cx = snprintf ( buf1, bufsize, "Uptime %.1f s", (millis() / 1000.0) );
+  display.println(buf1);
+
+  display.display();
+
+  Serial.println(buf1);
+}
+
 
 uint32_t addToPayload(uint8_t pl[], uint16_t val, uint32_t i) {
   pl[i++] = val >> 8;
@@ -158,7 +276,7 @@ void generatePayload() {
                   min25, max25, avg25, med25, min10, max10, avg10, med10, temp, humi, pres, gas );
 
   Serial.println(buffer);
-     
+
   uint16_t tmp;
   uint8_t i = 0;
 

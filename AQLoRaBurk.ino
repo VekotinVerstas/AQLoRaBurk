@@ -204,9 +204,10 @@ void displaySensorvalues() {
 
   cx = snprintf ( buf1, bufsize, "P %.1fhPa G %.1fohm", temp, humi, pres, gas );
   display.println(buf1);
-
-  cx = snprintf ( buf1, bufsize, "PM2.5/10 %.1f %.1f", sds011_pm25[pm_array_counter], sds011_pm10[pm_array_counter] );
-  display.println(buf1);
+  if (pm_array_counter > 0) {
+    cx = snprintf ( buf1, bufsize, "PM2.5/10 %.1f %.1f", sds011_pm25[pm_array_counter-1], sds011_pm10[pm_array_counter-1] );
+    display.println(buf1);
+  }
 
   cx = snprintf ( buf1, bufsize, "Uptime %.1f s", (millis() / 1000.0) );
   display.println(buf1);

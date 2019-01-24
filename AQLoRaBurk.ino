@@ -85,6 +85,7 @@ void setup() {
   Serial.begin(115200);
   delay(100);     // per sample code on RF_95 test
   Serial.println(F("Starting"));
+  printLoRaWANkeys();
   // SDS011 serial
   Serial2.begin(9600, SERIAL_8N1, SDS011_RXPIN, SDS011_TXPIN);
   init_sensors();
@@ -100,6 +101,7 @@ void setup() {
   for (uint8_t i = 0; i < payloadSize; i++) {
     payload[i] = 0;
   }
+  
 }
 
 void loop() {
@@ -117,6 +119,27 @@ void loop() {
     displaySensorvalues();
     lastDisplay = now;
   }
+}
+
+void printArray(const char *keyName, u1_t x[], uint8_t s) {
+  char buf [2];
+  Serial.print(keyName);
+  Serial.print(": ");
+  for ( int i = 0 ; i < s; i++ ) {
+    sprintf(buf, "%02x", x[i]);
+    Serial.print(buf);
+  }
+  Serial.println();
+}
+
+void printLoRaWANkeys() {
+#ifdef PRINT_KEYS
+  printArray("NWKSKEY", NWKSKEY, 16);
+  printArray("APPSKEY", APPSKEY, 16);
+  printArray("DEVEUI", DEVEUI, 8);
+  Serial.print(F("DevAddr: 0x")); 
+  Serial.println(DEVADDR, HEX);
+#endif
 }
 
 void displayInit() {
@@ -202,8 +225,12 @@ void displaySensorvalues() {
   cx = snprintf ( buf1, bufsize, "T %.1f'C H %.1f%%", temp, humi);
   display.println(buf1);
 
-  cx = snprintf ( buf1, bufsize, "P %.1fhPa G %.1fohm", temp, humi, pres, gas );
+  cx = snprintf ( buf1, bufsize, "Pres %.1f hPa", pres );
   display.println(buf1);
+
+  cx = snprintf ( buf1, bufsize, "Gas %.1f kohm", gas );
+  display.println(buf1);
+
   if (pm_array_counter > 0) {
     cx = snprintf ( buf1, bufsize, "PM2.5/10 %.1f %.1f", sds011_pm25[pm_array_counter-1], sds011_pm10[pm_array_counter-1] );
     display.println(buf1);

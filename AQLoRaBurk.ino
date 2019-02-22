@@ -40,8 +40,8 @@ static uint8_t payload[payloadSize];
 #define SCL 22
 
 #define BME680_HEATING_TIME 150 // milliseconds
-#define SDS011_RXPIN 39
-#define SDS011_TXPIN 36
+#define SDS011_RXPIN 39  // Connect to SDS011 TX
+#define SDS011_TXPIN 36  // Connect to SDS011 RX
 
 // BME280 sensor
 Adafruit_BME280 bme280;
@@ -156,7 +156,7 @@ void displayInit() {
 
   display.setTextSize(1);             // Normal 1:1 pixel scale
   display.setTextColor(WHITE);        // Draw white text
-  display.println(F("Version 0.1"));
+  display.println(F("Version 0.0.1"));
   display.println(F("Dev "));
   display.print(F("0x")); display.println(DEVADDR, HEX);
   if ( bme280_ok || bme680_ok || sds011_ok) {
@@ -222,13 +222,13 @@ void displaySensorvalues() {
   display.setTextSize(1);             // Normal 1:1 pixel scale
   display.setTextColor(WHITE);        // Draw white text
 
-  cx = snprintf ( buf1, bufsize, "T %.1f'C H %.1f%%", temp, humi);
+  cx = snprintf ( buf1, bufsize, "T %.1f'C  H %.1f%%", temp, humi);
   display.println(buf1);
 
   cx = snprintf ( buf1, bufsize, "Pres %.1f hPa", pres );
   display.println(buf1);
 
-  cx = snprintf ( buf1, bufsize, "Gas %.1f kohm", gas );
+  cx = snprintf ( buf1, bufsize, "Gas  %.1f kohm", gas );
   display.println(buf1);
 
   if (pm_array_counter > 0) {

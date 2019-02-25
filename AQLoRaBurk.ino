@@ -156,7 +156,7 @@ void displayInit() {
 
   display.setTextSize(1);             // Normal 1:1 pixel scale
   display.setTextColor(WHITE);        // Draw white text
-  display.println(F("Version 0.0.1"));
+  display.println(F("Version 0.0.2"));
   display.println(F("Dev "));
   display.print(F("0x")); display.println(DEVADDR, HEX);
   if ( bme280_ok || bme680_ok || sds011_ok) {

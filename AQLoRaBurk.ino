@@ -16,6 +16,8 @@
 
  *******************************************************************************/
 
+uint8_t VERSION = 0x2C; // REMEMBER TO INCREASE BY ONE HEX DIGIT WHEN THERE IS CHANGES IN DATA!
+
 #include <lmic.h>
 #include <hal/hal.h>
 #include <Wire.h>
@@ -156,7 +158,8 @@ void displayInit() {
 
   display.setTextSize(1);             // Normal 1:1 pixel scale
   display.setTextColor(WHITE);        // Draw white text
-  display.println(F("Version 0.0.2"));
+  display.print(F("Version 0.0."));
+  display.println(VERSION, HEX);
   display.println(F("Dev "));
   display.print(F("0x")); display.println(DEVADDR, HEX);
   if ( bme280_ok || bme680_ok || sds011_ok) {
@@ -199,16 +202,13 @@ void displaySensorvalues() {
   float pres = 0;
   float gas = 0;
 
-  uint8_t protocol = 0x2A;
   // Add BME sensor values, if they are read at least once
   if (bme280_ok && (bme280_lastTemp > -999)) {
-    protocol = 0x2A;
     temp = bme280_lastTemp;
     humi = bme280_lastHumi;
     pres = bme280_lastPres;
     gas = 0;
   } else if (bme680_ok && (bme680_lastTemp > -999)) {
-    protocol = 0x2B;
     temp = bme680_lastTemp;
     humi = bme680_lastHumi;
     pres = bme680_lastPres;
@@ -271,7 +271,6 @@ void generatePayload() {
   float pres = 0;
   float gas = 0;
 
-  uint8_t protocol = 0x2A;
   // More examples for statistics
   // https://github.com/dndubins/QuickStats/blob/master/examples/statistics/statistics.ino
   if (pm_array_counter > 0) {
@@ -286,13 +285,11 @@ void generatePayload() {
   }
   // Add BME sensor values, if they are read at least once
   if (bme280_ok && (bme280_lastTemp > -999)) {
-    protocol = 0x2A;
     temp = bme280_lastTemp + 100; // add 100 to make value always positive
     humi = bme280_lastHumi;
     pres = bme280_lastPres;
     gas = 0;
   } else if (bme680_ok && (bme680_lastTemp > -999)) {
-    protocol = 0x2B;
     temp = bme680_lastTemp + 100; // add 100 to make value always positive
     humi = bme680_lastHumi;
     pres = bme680_lastPres;
@@ -308,9 +305,10 @@ void generatePayload() {
   uint16_t tmp;
   uint8_t i = 0;
 
-  // 2 first bytes defines protocol
+  // first byte defines protocol (AQBurk)
   payload[i++] = 0x2A;
-  payload[i++] = protocol;  // 2A=BME280, 2B=BME680
+  // second byte defines version
+  payload[i++] = VERSION;
   i = addToPayload(payload, (uint16_t)(min25 * 10), i);
   i = addToPayload(payload, (uint16_t)(max25 * 10), i);
   i = addToPayload(payload, (uint16_t)(avg25 * 10), i);

@@ -21,7 +21,7 @@ print('\n'.join(conf))
 
 // uint8_t version = 1;
 // char s_id[16];
-const unsigned TX_INTERVAL = 0.5 * 60;  // LoRa send interval in seconds.
+const unsigned TX_INTERVAL = 1 * 60;  // LoRa send interval in seconds.
 
 // #define PRINT_KEYS  // Uncomment if you want to print the keys below to the Serial at boot time
 static PROGMEM u1_t NWKSKEY[16] = { 0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef, 0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef };

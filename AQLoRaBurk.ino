@@ -37,6 +37,9 @@ QuickStats stats;
 #define payloadSize 26
 static uint8_t payload[payloadSize];
 
+
+// TODO: these defines should be in settings.h
+
 // I2C settings
 #define SDA 21
 #define SCL 22

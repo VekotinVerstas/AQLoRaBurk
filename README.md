@@ -65,6 +65,10 @@ Check pin numbers from `settings.h`:
 #define SDS011_TXPIN 36  // Connect to SDS011 RX
 ```
 
+In addition:
+* Connect 5V and GND to correct pins in SDS011.
+* Connect 3V3 and GND to correct pins in BMEx80.
+
 # Known issues
 * LoRaWAN spreading factor is hard coded (SP7)
 * Only LoRaWAN ABP is supported. If you need OTAA, just implement it and make a pull request

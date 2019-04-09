@@ -16,7 +16,32 @@ BME680 is read once in 30 seconds (default).
 
 TTGO ESP32 LoRa V2 and V2.1 have been tested to be functional with this code.
 
+Surprisingly this code has been very stable: dozens of deployments have been
+running months without issues.  
+
 # Gettings started
+
+## Arduino libraries
+
+Install the libraries below using Arduino IDE's
+
+`Sketch->Include Library->Manage Libraries...`:
+
+* Adafruit_Sensor
+* Adafruit_BME280
+* Adafruit_BME680
+* Adafruit_SSD1306
+* MCCI LoRaWAN LMIC library by IBM, Matthis Kooijman, Terry Moore etc.
+
+### Define radio type in LMIC lib
+
+Do not forget to define the radio type correctly 
+
+`#define CFG_eu868 1`
+ 
+in `libraries/MCCI_LoRaWAN_LMIC_library/project_config/lmic_project_config.h` or from your BOARDS.txt.
+
+## The code
 
 1. Clone this repository
 2. Copy `settings-example.h` to `settings.h`

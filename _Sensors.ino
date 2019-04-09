@@ -1,10 +1,3 @@
-// TODO: these defines should be in settings.h
-
-#define SENSOR_SEND_MAX_DELAY 60000
-#define BME280_READ_DELAY 1000
-#define BME680_READ_DELAY 30000  // Do not use to low value, since heating gas sensor may affect temp and RH values!
-#define SDS011_READ_DELAY 1000
-
 void init_sensors() {
   init_bme280();
   init_bme680();

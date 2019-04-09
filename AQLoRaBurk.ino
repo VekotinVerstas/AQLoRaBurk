@@ -37,17 +37,6 @@ QuickStats stats;
 #define payloadSize 26
 static uint8_t payload[payloadSize];
 
-
-// TODO: these defines should be in settings.h
-
-// I2C settings
-#define SDA 21
-#define SCL 22
-
-#define BME680_HEATING_TIME 150 // milliseconds
-#define SDS011_RXPIN 39  // Connect to SDS011 TX
-#define SDS011_TXPIN 36  // Connect to SDS011 RX
-
 // BME280 sensor
 Adafruit_BME280 bme280;
 uint8_t bme280_ok = 0;

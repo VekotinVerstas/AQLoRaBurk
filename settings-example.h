@@ -28,3 +28,19 @@ static PROGMEM u1_t NWKSKEY[16] = { 0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0x
 static PROGMEM u1_t APPSKEY[16] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
 static PROGMEM u1_t DEVEUI[8] = { 0x99, 0x00, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, BOXNUM };
 static u4_t DEVADDR = 0xccddee00 | BOXNUM; // NOTE: last 8 characters from DEVEUI
+
+// I2C settings
+#define SDA 21
+#define SCL 22
+
+// Software serial settings for SDS011
+#define SDS011_RXPIN 39  // Connect to SDS011 TX
+#define SDS011_TXPIN 36  // Connect to SDS011 RX
+
+// BME680 heating time. I wouldn't touch this setting without good reasoning
+#define BME680_HEATING_TIME 150 // milliseconds
+
+// How often to read sensors
+#define BME280_READ_DELAY 1000   // 1000 ms is too short delay, since we are sending the data once in a minute anyway
+#define BME680_READ_DELAY 30000  // Do not use to low value, since heating gas sensor may affect temp and RH values!
+#define SDS011_READ_DELAY 1000

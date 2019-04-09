@@ -54,7 +54,7 @@ Check very carefully all LoRaWAN network related values in `settings.h`.
 
 ## Wiring
 
-Check pin numbers from `AQLoRaBurk.ino`:
+Check pin numbers from `settings.h`:
 
 ```
 // I2C settings
@@ -64,15 +64,7 @@ Check pin numbers from `AQLoRaBurk.ino`:
 #define SDS011_RXPIN 39  // Connect to SDS011 TX
 #define SDS011_TXPIN 36  // Connect to SDS011 RX
 ```
-(TODO: move to settings.h)
-
 
 # Known issues
 * LoRaWAN spreading factor is hard coded (SP7)
 * Only LoRaWAN ABP is supported. If you need OTAA, just implement it and make a pull request
-* I2C (for BME) and serial (for SDS011) pins are hard coded
-
-# TODO
-* Move all `#define` lines from `_Sensors.ino` to `settings.h`
-* Move all `#define` lines from `AQLoRaBurk.ino` to `settings.h`
-

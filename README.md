@@ -52,6 +52,14 @@ in `libraries/MCCI_LoRaWAN_LMIC_library/project_config/lmic_project_config.h` or
 
 Check very carefully all LoRaWAN network related values in `settings.h`.
 
+# Data encoding
+
+All data is put into a byte array which may look like this:
+`2a2c0021002c002800300056003b0000`.
+
+An example how to decode it using python can be found in 
+[https://github.com/VekotinVerstas/DjangoHttpBroker-Thingpark/thingpark/parsers/aqburk.py](https://github.com/VekotinVerstas/DjangoHttpBroker-Thingpark/blob/fa2dc2670a781eaa8129b2fdb699a0c5d80154a9/thingpark/parsers/aqburk.py#L19)
+
 ## Wiring
 
 Check pin numbers from `settings.h`:
